@@ -1,10 +1,13 @@
 from urllib import request
+import  urllib.error
 from bs4 import BeautifulSoup
 import re
 import os
 import wget
 import urllib3
 import shutil
+
+os.environ['http_proxy']=''
 
 
 
@@ -25,23 +28,38 @@ urls_file=open('urls.txt').readlines()
 
 def scrap_all(urls_file):
     dict_urls={}
-    for url in urls_file:
-        url=re.sub(r'\n','',url)
-        dict_urls[url]=list(filter(None, scrap_urls(url))) 
+    if(len(urls_file)!=0):
+        for url in urls_file:
+            url=re.sub(r'\n','',url)
+            scrapped=scrap_urls(url)
+            if len(scrapped)!=0:
+                dict_urls[url]=list(filter(None, scrapped)) 
     return dict_urls
 
 def scrap_urls(url):
     urls_list=[]
+    url=re.sub(r'(\/\/)$','/',url)
     if(re.match(r'^http[s]?:\/\/',str(url))):
         print("\n\n------------ Getting Urls from :  "+url)
-        request_ok=request.Request(url=url, headers=headers)
-        response = request.urlopen(request_ok).read()
-        soup= BeautifulSoup(response, "html.parser")
-        links_list=soup.find_all('a', href=True)
-        for l in links_list:
-           urls_list.append(l['href'])
         
-        return build_multiple_urls(url,list(filter(None, urls_list)))
+        
+        try:
+            request_ok=request.Request(url=url, headers=headers)
+            response = request.urlopen(request_ok).read()
+            soup= BeautifulSoup(response, "html.parser")
+            links_list=[]
+            links_list=soup.find_all('a', href=True)
+            if len(links_list)!=0:
+                for l in links_list:
+                    urls_list.append(l['href'])
+            
+            return build_multiple_urls(url,list(filter(None, urls_list)))
+
+        except (urllib.error.HTTPError,urllib.error.URLError) as err:
+            print(err)
+            return []
+
+       
     else:
          print('ERROR')
          return []
@@ -65,7 +83,14 @@ def build_multiple_urls(domain,urls):
 def download_doc(domain,url):
   
     doc_name=re.sub(r'.+?\/+','',url)
-    domain_name=re.sub(r'.+?\/+','',domain)
+    domain_name=re.sub(r'^http[s]?:\/\/','',domain)
+    if(re.match(r'\w+\.\w+\.',str(domain_name))):
+        domain_name=re.sub(r'^(.+?\.)','',domain_name)
+    domain_name=re.sub(r'\.\w{2,3}.+','',domain_name)
+    
+    folder_path='download'+'/'+domain_name
+    doc_path=folder_path+'/'+doc_name
+
     print("--- Downloading : "+ doc_name)
     try:
         # Create target Directory
@@ -75,16 +100,20 @@ def download_doc(domain,url):
         print("Directory " , 'download' ,  " already exists")      
     try:
         # Create target Directory
-        os.mkdir('download'+'/'+domain_name)
-        print("Directory " , 'download'+'/'+domain_name ,  " Created ") 
+        os.mkdir(folder_path)
+        print("Directory " , folder_path ,  " Created ") 
     except FileExistsError:
-        print("Directory " , 'download'+'/'+domain_name ,  " already exists")
-    http = urllib3.PoolManager()
+        print("Directory " , folder_path ,  " already exists")
+    
+    if(not os.path.isfile(doc_path)):
+        http = urllib3.PoolManager()
 
-    with http.request('GET',url, preload_content=False) as resp, open('download'+'/'+domain_name+'/'+doc_name, 'wb') as out_file:
-        shutil.copyfileobj(resp, out_file)
+        with http.request('GET',url, preload_content=False) as resp, open(doc_path, 'wb') as out_file:
+            shutil.copyfileobj(resp, out_file)
 
-    resp.release_conn()
+        resp.release_conn()
+    else:
+        print(doc_name+' already exists')
     #request.urlretrieve(url, domain_name+'/'+doc_name)
     #wget.download(url,out=domain_name)
 
@@ -94,25 +123,30 @@ def downlaod_docs(url,docs):
     if (url.endswith('.pdf')):
         download_doc(url,url)
     else:
-        print("\n\n------- Gettings doc from  :  "+url)
+        print("\n\n------- Gettings docs from  :  "+url)
         for doc in docs:
             #print("\n\n------- Gettings doc from  :  "+doc)
             if (doc.endswith('.pdf')):
-                print('okokok')
                 download_doc(url,doc)
             
 
 
 def main(urls_file,rec=0):
+    visited_links=[]
     list_links=scrap_all(urls_file)
     for key,value in list_links.items():
-        downlaod_docs(key,value)
+        if key not in visited_links:
+            downlaod_docs(key,value)
+            visited_links.append(key)
         if rec==1:
-            print('---------------- 2 eme couche -----------------------')
+            print('---------------- step 2 -----------------------')
             list_links_rec=scrap_all(value)
             for key_rec,value_rec in list_links_rec.items():
-                downlaod_docs(key_rec,value_rec)
+                if key_rec not in visited_links:
+                    downlaod_docs(key_rec,value_rec)
+                    visited_links.append(key_rec)
 
 
         
 main(urls_file,1)
+
