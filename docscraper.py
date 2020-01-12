@@ -6,10 +6,15 @@ import os
 import wget
 import urllib3
 import shutil
+import ssl
+from w3lib.url import safe_url_string
+
+
 
 os.environ['http_proxy']=''
 
 
+ssl.match_hostname = lambda cert, hostname: True
 
 
 headers = {'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) ' 
@@ -41,7 +46,7 @@ def scrap_urls(url):
     url=re.sub(r'(\/\/)$','/',url)
     if(re.match(r'^http[s]?:\/\/',str(url))):
         print("\n\n------------ Getting Urls from :  "+url)
-        
+        url = safe_url_string(url, encoding="utf-8")
         
         try:
             request_ok=request.Request(url=url, headers=headers)
@@ -67,10 +72,14 @@ def scrap_urls(url):
  
 def build_url(domain,url):
     url=str(url)
+    url=re.sub(r'(\/\/)$','/',url)
+    domain=re.sub(r'(\/\/)$','/',domain)
+    domain=re.sub(r'\n','',domain)
     if not url.startswith('#'):
-        if url.startswith('/'):
-            if(domain.endswith(r'\/')):
-                url=re.sub(r'\/','',url)
+        if url.startswith('/') or url.startswith('.'):
+            if(domain.endswith('/')):
+                domain=re.sub(r'(\/)$','',domain)
+            url=re.sub(r'(\.)(\/)','/',url)
             return re.sub(r'\n','',str(str(domain)+url))
         if str(url).startswith('https') or str(url).startswith('http'):
             return str(url)
@@ -81,7 +90,7 @@ def build_multiple_urls(domain,urls):
     return list(set([build_url(domain,url) for url in urls]))
 
 def download_doc(domain,url):
-  
+    url=re.sub(r'(\/\/)$','/',url)
     doc_name=re.sub(r'.+?\/+','',url)
     domain_name=re.sub(r'^http[s]?:\/\/','',domain)
     if(re.match(r'\w+\.\w+\.',str(domain_name))):
@@ -107,7 +116,7 @@ def download_doc(domain,url):
     
     if(not os.path.isfile(doc_path)):
         http = urllib3.PoolManager()
-
+        url = safe_url_string(url, encoding="utf-8")
         with http.request('GET',url, preload_content=False) as resp, open(doc_path, 'wb') as out_file:
             shutil.copyfileobj(resp, out_file)
 
@@ -119,11 +128,11 @@ def download_doc(domain,url):
 
 
 def downlaod_docs(url,docs):
-    
     if (url.endswith('.pdf')):
         download_doc(url,url)
     else:
         print("\n\n------- Gettings docs from  :  "+url)
+        
         for doc in docs:
             #print("\n\n------- Gettings doc from  :  "+doc)
             if (doc.endswith('.pdf')):

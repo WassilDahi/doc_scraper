@@ -1,1 +1,1 @@
-https://stackoverflow.com/questions/3809401/what-is-a-good-regular-expression-to-match-a-url/
+http://deptinfo.usthb.dz/
