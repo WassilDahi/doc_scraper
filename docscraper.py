@@ -3,15 +3,9 @@ import  urllib.error
 from bs4 import BeautifulSoup
 import re
 import os
-import wget
-import urllib3
-import shutil
 import ssl
 from w3lib.url import safe_url_string
-import requests
-from PyPDF2 import PdfFileReader
 from socket import error as SocketError
-import errno
 
 
 
