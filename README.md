@@ -1,9 +1,25 @@
 # doc_scraper
 
 
-##to install : pip install -r requirements.txt
+## How to use :
 
-##to use : 
-         - entrer links in urls.txt : must being with http/https.
-         - execute with : python doc_scraper.py
-         - tested only on python 3.
+### Install requirements :
+```shell
+pip install -r requirements.txt
+```
+
+### Enter links in the file urls.txt : 
+- Must be one link per line.
+- Every link must begin with http/https.
+
+### Execute :
+```shell
+python doc_scraper.py
+```
+- tested only on python 3.
+
+
+## To do :
+
+- [ ] find errors and fixe them.
+
