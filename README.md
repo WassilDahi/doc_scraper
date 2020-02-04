@@ -14,7 +14,7 @@ pip install -r requirements.txt
 
 ### Execute :
 ```shell
-python doc_scraper.py
+python docscraper.py
 ```
 - tested only on python 3.
 
@@ -22,4 +22,7 @@ python doc_scraper.py
 ## To do :
 
 - [ ] find errors and fixe them.
+- [ ] add new extensions ( it can scrap only pdfs )
+- [x] add loading download bar.
+- [ ] beautify output.
 

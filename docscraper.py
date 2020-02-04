@@ -6,7 +6,10 @@ import os
 import ssl
 from w3lib.url import safe_url_string
 from socket import error as SocketError
+import progressbar
 
+
+list_extensions=['.pdf','.doc','.docx','.txt','.odt','.ods','.xlr','.xls','.xlsx']
 
 
 os.environ['http_proxy']=''
@@ -29,6 +32,22 @@ regex_domain=r'(https?:\/\/(?:www\.|(?!www))[a-zA-Z0-9][a-zA-Z0-9-]+[a-zA-Z0-9]\
 
 urls_file=open('urls.txt').readlines()
 
+
+pbar = None
+
+
+def show_progress(block_num, block_size, total_size):
+    global pbar
+    if pbar is None:
+        pbar = progressbar.ProgressBar(maxval=total_size or None).start()
+
+    downloaded = block_num * block_size
+    if downloaded < total_size:
+        pbar.update(downloaded)
+    else:
+        pbar.finish()
+        pbar = None
+
 def scrap_all(urls_file):
     dict_urls={}
     if(len(urls_file)!=0):
@@ -42,7 +61,7 @@ def scrap_all(urls_file):
 def scrap_urls(url):
     urls_list=[]
     url=re.sub(r'(\/\/)$','/',url)
-    if(re.match(r'.+\.pdf',str(url))):
+    if(re.match(r'.+\.pdf|.+\.doc|.+\.docx|.+\.xls|.+\.xlsx|.+\.odt|.+\.txt|.+\.ods|.+\.xlr',str(url))):
         return []
     if(re.match(r'^http[s]?:\/\/',str(url))):
         print("\n\n------------ Getting Urls from :  "+url)
@@ -128,7 +147,7 @@ def download_doc(domain,url):
             '''with http.request('GET',url, preload_content=False, cert_reqs='CERT_NONE',
                                 assert_hostname=False) as resp, open(doc_path, 'wb') as out_file:
                 shutil.copyfileobj(resp, out_file)'''
-            urllib.request.urlretrieve(url,doc_path)
+            urllib.request.urlretrieve(url,doc_path,show_progress)
         #except (urllib3.exceptions.HTTPError,urllib3.exceptions.MaxRetryError) as err:
             #print(err)
         except (urllib.error.HTTPError,urllib.error.URLError,SocketError) as err:
@@ -141,14 +160,14 @@ def download_doc(domain,url):
             
 
 def downlaod_docs(url,docs):
-    if (url.endswith('.pdf')):
+    if (url.endswith(tuple(list_extensions))):
         download_doc(url,url)
     else:
         print("\n\n------- Gettings docs from  :  "+url)
         
         for doc in docs:
             #print("\n\n------- Gettings doc from  :  "+doc)
-            if (doc.endswith('.pdf')):
+            if (doc.endswith(tuple(list_extensions))):
                 download_doc(url,doc)
             
 
