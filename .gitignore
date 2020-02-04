@@ -4,3 +4,5 @@ doc_scraper.code-workspace
 .vscode/
 
 download/
+
+test.py
