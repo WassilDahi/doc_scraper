@@ -22,7 +22,7 @@ python docscraper.py
 ## To do :
 
 - [ ] find errors and fixe them.
-- [ ] add new extensions ( it can scrap only pdfs )
+- [x] add new extensions of document files.
 - [x] add loading download bar.
 - [ ] beautify output.
 
