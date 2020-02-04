@@ -122,7 +122,7 @@ def download_doc(domain,url):
     folder_path='download'+'/'+domain_name
     doc_path=folder_path+'/'+doc_name
     
-    print("--- Downloading : "+ doc_name)
+    print("\n\n--- Downloading : "+ doc_name)
     try:
         # Create target Directory
         os.mkdir('download')
@@ -147,7 +147,11 @@ def download_doc(domain,url):
             '''with http.request('GET',url, preload_content=False, cert_reqs='CERT_NONE',
                                 assert_hostname=False) as resp, open(doc_path, 'wb') as out_file:
                 shutil.copyfileobj(resp, out_file)'''
-            urllib.request.urlretrieve(url,doc_path,show_progress)
+            opener = urllib.request.build_opener()
+            opener.addheaders = [('User-agent', 'Mozilla/5.0')]
+            urllib.request.install_opener(opener)
+            urllib.request.urlretrieve(url, doc_path,show_progress)
+            #urllib.request.urlretrieve(url,doc_path,show_progress)
         #except (urllib3.exceptions.HTTPError,urllib3.exceptions.MaxRetryError) as err:
             #print(err)
         except (urllib.error.HTTPError,urllib.error.URLError,SocketError) as err:
