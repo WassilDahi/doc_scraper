@@ -55,7 +55,7 @@ def scrap_all(urls_file):
             url=re.sub(r'\n','',url)
             scrapped=scrap_urls(url)
             if len(scrapped)!=0:
-                dict_urls[url]=list(filter(None, scrapped)) 
+                dict_urls[url]=set(list(filter(None, scrapped)))
     return dict_urls
 
 def scrap_urls(url):
@@ -77,7 +77,7 @@ def scrap_urls(url):
                 for l in links_list:
                     urls_list.append(l['href'])
             
-            return build_multiple_urls(url,list(filter(None, urls_list)))
+            return build_multiple_urls(url,set(list(filter(None, urls_list))))
 
         except (urllib.error.HTTPError,urllib.error.URLError) as err:
             print(err)
